@@ -112,16 +112,19 @@ class Part3_3_HistoricalAdvances(Scene):
         cleanup = chapter_subtitle(self, 3, 3)
 
         # Timeline of calculations
+        # Fix: explicitly use Text as label_constructor to avoid LaTeX
         timeline = NumberLine(
             x_range=[1850, 2030, 20],
             length=10,
             color=BLACK,
             include_numbers=True,
-            font_size=20
+            font_size=20,
+            label_constructor=Text
         ).shift(DOWN)
         
         self.play(Create(timeline))
 
+        # TODO Events overlap
         events = [
             (1859, "Riemann", "Les 3 premiers zéros"),
             (1903, "Gram", "15 zéros"),
@@ -132,11 +135,11 @@ class Part3_3_HistoricalAdvances(Scene):
         ]
 
         entries = VGroup()
-        for year, author, desc in events:
-            line = Line(timeline.n2p(year), timeline.n2p(year) + UP * 1.5, color=BLUE_E)
-            txt = Text(f"{author}\n({year})", font_size=16, color=BLACK).next_to(line, UP)
+        for i, (year, author, desc) in enumerate(events):
+            line_obj = Line(timeline.n2p(year), timeline.n2p(year) + UP * 1.5, color=BLUE_E)
+            txt = Text(f"{author}\n({year})", font_size=16, color=BLACK).next_to(line_obj, UP)
             subtxt = Text(desc, font_size=14, color=GRAY).next_to(txt, UP, buff=0.1)
-            entries.add(VGroup(line, txt, subtxt))
+            entries.add(VGroup(line_obj, txt, subtxt))
 
         self.play(LaggedStart(*[FadeIn(e, shift=UP) for e in entries], lag_ratio=0.5, run_time=5))
         self.wait(3)
@@ -151,6 +154,7 @@ class Part3_4_RiemannHypothesis(Scene):
         rh_box = SurroundingRectangle(Text("L'Hypothèse de Riemann", color=BLUE_E), buff=0.5, color=BLUE_E)
         rh_title = Text("L'Hypothèse de Riemann", color=BLUE_E).move_to(rh_box)
         
+        #TODO Text goes high in the rectangle after transition
         self.play(Create(rh_box), Write(rh_title))
         self.play(rh_box.animate.to_edge(UP), rh_title.animate.to_edge(UP))
         
@@ -162,8 +166,14 @@ class Part3_4_RiemannHypothesis(Scene):
         self.play(Write(statement))
         self.wait(2)
 
+        # TODO Complex plane is too right on screen 
         # Visual reminder
-        plane = ComplexPlane(x_range=[0, 1, 0.5], y_range=[0, 50, 10], axis_config={"color": BLACK}).scale(0.5).to_edge(RIGHT)
+        # Make sure labels don't trigger LaTeX
+        plane = ComplexPlane(
+            x_range=[0, 1, 0.5], 
+            y_range=[0, 50, 10], 
+            axis_config={"color": BLACK}
+        ).scale(0.5).to_edge(RIGHT)
         line = Line(plane.c2p(0.5, 0), plane.c2p(0.5, 50), color=RED, stroke_width=2)
         
         dots = VGroup(*[Dot(plane.c2p(0.5, im), color=BLACK, radius=0.03) for im in [14.13, 21.02, 25.01, 30.42, 32.93, 37.58, 40.91, 43.32, 48.00]])
