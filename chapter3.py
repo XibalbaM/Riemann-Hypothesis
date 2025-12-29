@@ -21,11 +21,10 @@ class Part3_1_TrivialZeros(Scene):
         self.play(Create(plane))
 
         # 2. Magnitude plot near negative real axis
-        # Use a smaller resolution for speed if needed, but 128x128 should be okay
         def zeta_func(z):
             return mpmath.zeta(z)
 
-        mag_label = MathTex(r"|\zeta(s)|", color=BLACK).to_edge(UP, buff=1.2)
+        mag_label = Text("|ζ(s)|", color=BLACK).to_edge(UP, buff=1.2)
         mag_plot = get_continuous_image(zeta_func, x_range=[-11, 2], y_range=[-4, 4], res_x=128, res_y=128, v_max=2)
         
         self.play(Write(mag_label))
@@ -35,19 +34,19 @@ class Part3_1_TrivialZeros(Scene):
         # 3. Highlight trivial zeros at -2, -4, -6, -8, -10
         zeros_pos = [(-2, 0), (-4, 0), (-6, 0), (-8, 0), (-10, 0)]
         dots = VGroup(*[Dot(plane.c2p(x, y), color=RED) for x, y in zeros_pos])
-        labels = VGroup(*[MathTex(str(x), color=RED, font_size=24).next_to(plane.c2p(x, y), DOWN) for x, y in zeros_pos])
+        labels = VGroup(*[Text(str(x), color=RED, font_size=20).next_to(plane.c2p(x, y), DOWN) for x, y in zeros_pos])
 
         self.play(LaggedStart(*[GrowFromCenter(dot) for dot in dots], lag_ratio=0.2))
         self.play(Write(labels))
         self.wait(2)
 
         # 4. Functional equation hint
-        formula = MathTex(
-            r"\zeta(s) = 2^s \pi^{s-1} \sin\left(\frac{\pi s}{2}\right) \Gamma(1-s) \zeta(1-s)",
-            color=BLACK, font_size=30
+        formula = MarkupText(
+            'ζ(s) = 2<sup>s</sup> π<sup>s-1</sup> sin(πs/2) Γ(1-s) ζ(1-s)',
+            color=BLACK, font_size=24
         ).to_edge(DOWN, buff=0.5).set_background_stroke(color=WHITE, width=2, opacity=1)
         
-        sin_part = MathTex(r"\sin\left(\frac{\pi s}{2}\right) = 0 \text{ pour } s = -2, -4, \dots", color=RED, font_size=24).next_to(formula, UP)
+        sin_part = Text("sin(πs/2) = 0 pour s = -2, -4, ...", color=RED, font_size=20).next_to(formula, UP)
         
         self.play(Write(formula))
         self.play(Write(sin_part))
@@ -89,25 +88,20 @@ class Part3_2_NonTrivialZeros(Scene):
         self.wait(1)
 
         # 3. Non-trivial zeros (first few)
-        # 1/2 + i * 14.13, 21.02, 25.01
         zeros_im = [14.1347, 21.0220, 25.0108, 30.4248, 32.9351]
         zeros_dots = VGroup(*[Dot(plane.c2p(0.5, im), color=BLACK, radius=0.06) for im in zeros_im])
-        zeros_dots_conj = VGroup(*[Dot(plane.c2p(0.5, -im), color=GRAY, radius=0.04) for im in zeros_im if im < 5]) # just show some below
 
         self.play(LaggedStart(*[GrowFromCenter(dot) for dot in zeros_dots], lag_ratio=0.3))
         self.wait(1)
 
         # 4. Symmetry demonstration
-        # If s is a zero, 1-s is a zero
-        z_sample = complex(0.5, 14.13)
         dot_s = Dot(plane.c2p(0.5, 14.13), color=PURPLE)
-        label_s = MathTex("s", color=PURPLE).next_to(dot_s, RIGHT)
+        label_s = Text("s", color=PURPLE).next_to(dot_s, RIGHT)
         
         self.play(Indicate(zeros_dots[0]))
         self.play(Create(dot_s), Write(label_s))
         
-        # Mirroring to 1-s (here it's the same because Re=1/2, but let's show anyway)
-        sym_text = MathTex(r"s \in \mathcal{Z} \implies 1-s, \bar{s}, 1-\bar{s} \in \mathcal{Z}", color=BLACK, font_size=30).to_edge(UP, buff=1.2)
+        sym_text = Text("s ∈ Z ⟹ 1-s, s̄, 1-s̄ ∈ Z", color=BLACK, font_size=24).to_edge(UP, buff=1.2)
         self.play(Write(sym_text))
         self.wait(2)
 
@@ -160,10 +154,9 @@ class Part3_4_RiemannHypothesis(Scene):
         self.play(Create(rh_box), Write(rh_title))
         self.play(rh_box.animate.to_edge(UP), rh_title.animate.to_edge(UP))
         
-        statement = MathTex(
-            r"\text{Toutes les racines non-triviales } s \text{ de } \zeta(s)",
-            r"\text{ont une partie réelle } \text{Re}(s) = \frac{1}{2}",
-            color=BLACK, font_size=36
+        statement = VGroup(
+            Text("Toutes les racines non-triviales s de ζ(s)", font_size=28, color=BLACK),
+            Text("ont une partie réelle Re(s) = 1/2", font_size=28, color=BLACK)
         ).arrange(DOWN, buff=0.5)
         
         self.play(Write(statement))
