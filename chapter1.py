@@ -366,7 +366,103 @@ class Part1_4_AnalyticContinuation(Scene):
         self.play(Create(proper_continuation), Create(improper_continuation), Create(improper_continuation2))
         self.wait(1)
 
-        self.play(FadeOut(line), FadeOut(axes), FadeOut(labels))
+        self.play(FadeOut(line), FadeOut(axes), FadeOut(labels), FadeOut(proper_continuation), FadeOut(improper_continuation), FadeOut(improper_continuation2))
 
         # Taylor series of e^x
+        
+        # New axes for Taylor Series
+        taylor_axes = Axes(x_range=[-4, 4], y_range=[-2, 10], axis_config={"color": BLACK}).scale(0.8)
+        taylor_labels = taylor_axes.get_axis_labels("x", "f(x)")
+        
+        func_exp = taylor_axes.plot(np.exp, color=BLUE_E)
+        label_exp = MathTex("e^x", color=BLUE_E).next_to(func_exp, UP, buff=0.5)
+        
+        self.play(Create(taylor_axes), Create(func_exp), Write(taylor_labels), Write(label_exp))
+        self.wait(1)
+        
+        # Taylor polynomials of e^x at 0: 1 + x + x^2/2 + ...
+        # P_n(x) = sum_{k=0}^n x^k / k!
+        
+        import math
+        
+        prev_poly = None
+        poly_label = None
+        
+        for n in range(10):
+            # Define the n-th Taylor polynomial
+            def taylor_poly(x, degree=n):
+                return sum([(x**k)/math.factorial(k) for k in range(degree + 1)])
+            
+            poly = taylor_axes.plot(lambda x: taylor_poly(x, n), color=RED_E, x_range=[-4, 4])
+            
+            # Construct the formula string
+            # We'll just show the last term added or simple summation
+            if n == 0:
+                tex = "1"
+            elif n == 1:
+                tex = "1 + x"
+            elif n == 2:
+                tex = "1 + x + \\frac{x^2}{2}"
+            elif n == 3:
+                tex = "1 + x + \\frac{x^2}{2} + \\frac{x^3}{6}"
+            else:
+                tex = f"P_{{{n}}}(x) = \\sum_{{k=0}}^{{{n}}} \\frac{{x^k}}{{k!}}"
+                
+            new_label = MathTex(tex, color=RED_E, font_size=36).to_edge(UP, buff=1.5).shift(RIGHT*3)
+            
+            if prev_poly is None:
+                self.play(Create(poly), Write(new_label))
+                prev_poly = poly
+                poly_label = new_label
+            else:
+                self.play(Transform(prev_poly, poly), Transform(poly_label, new_label), run_time=1)
+                
+            self.wait(1/(n+1))
+            
+        self.wait(2)
+        self.play(FadeOut(taylor_axes), FadeOut(func_exp), FadeOut(taylor_labels), FadeOut(label_exp), FadeOut(prev_poly), FadeOut(poly_label))
+        
+        # Interpolation
+        interp_axes = Axes(x_range=[-1, 5], y_range=[-5, 5], axis_config={"color": BLACK}).scale(0.8)
+        
+        # Define 5 points
+        points_x = [0, 1, 2, 3, 4]
+        points_y = [0, 2, -1, 3, 0] # Arbitrary values
+        
+        dots = VGroup()
+        for x, y in zip(points_x, points_y):
+            dots.add(Dot(interp_axes.c2p(x, y), color=BLACK, radius=0.08))
+            
+        self.play(Create(interp_axes), FadeIn(dots))
+        self.wait(1)
+        
+        # Calculate interpolating polynomial using numpy
+        coeffs = np.polyfit(points_x, points_y, len(points_x)-1)
+        poly_func = np.poly1d(coeffs)
+        
+        interp_curve = interp_axes.plot(poly_func, color=BLUE_E, x_range=[-1, 5])
+        poly_tex = f"P(x) = {coeffs[0].round(2)}x^4 + {coeffs[1].round(2)}x^3 + {coeffs[2].round(2)}x^2 + {coeffs[3].round(2)}x + {coeffs[4].round(2)}"
+        interp_label = MathTex(poly_tex, color=BLUE_E).next_to(interp_curve, UP, buff=0.5)
+        
+        self.play(Create(interp_curve), Write(interp_label))
+        self.wait(3)
+
+        # Add one more point
+        points_x.append(5)
+        points_y.append(2)
+
+        dots.add(Dot(interp_axes.c2p(5, 2), color=BLACK, radius=0.08))
+        self.play(FadeIn(dots[-1]))
+
+        coeffs = np.polyfit(points_x, points_y, len(points_x)-1)
+        poly_func = np.poly1d(coeffs)
+        
+        interp_curve2 = interp_axes.plot(poly_func, color=BLUE_E, x_range=[-1, 5])
+        poly_tex2 = f"P(x) = {coeffs[0].round(2)}x^5 + {coeffs[1].round(2)}x^4 + {coeffs[2].round(2)}x^3 + {coeffs[3].round(2)}x^2 + {coeffs[4].round(2)}x + {coeffs[5].round(2)}"
+        interp_label2 = MathTex(poly_tex2, color=BLUE_E).next_to(interp_curve2, UP, buff=0.5)
+        self.play(Transform(interp_curve, interp_curve2), Transform(interp_label, interp_label2))
+        self.wait(3)
+        
+        self.play(FadeOut(interp_axes), FadeOut(dots), FadeOut(interp_curve))
+        self.play(cleanup)
         
