@@ -79,3 +79,53 @@ def wrap_text(text, max_chars=40):
             line = word
     lines.append(line)
     return "\n".join(lines)
+
+def get_color_scale(colors, label_text, vrange=[0, 1]):
+    scale = VGroup()
+    for i, color in enumerate(colors):
+        rect = Square(side_length=0.2, fill_color=color, fill_opacity=1, stroke_width=0)
+        rect.shift(DOWN * i * 0.2)
+        scale.add(rect)
+    scale.to_edge(RIGHT, buff=1)
+    label = Text(label_text, font_size=20, color=BLACK).next_to(scale, UP)
+    min_l = Text(str(vrange[0]), font_size=16, color=BLACK).next_to(scale, RIGHT).align_to(scale, UP)
+    max_l = Text(str(vrange[1]), font_size=16, color=BLACK).next_to(scale, RIGHT).align_to(scale, DOWN)
+    return VGroup(scale, label, min_l, max_l)
+
+def get_continuous_image(func, x_range=[-6, 6], y_range=[-4, 4], res_x=256, res_y=256, mode="mag", v_max=10):
+    x = np.linspace(x_range[0], x_range[1], res_x)
+    y = np.linspace(y_range[1], y_range[0], res_y)
+    X, Y = np.meshgrid(x, y)
+    Z = X + 1j * Y
+    
+    # Vectorize func manually to handle potential issues with mpmath complex types
+    W = np.zeros(Z.shape, dtype=complex)
+    for i in range(res_y):
+        for j in range(res_x):
+            try:
+                W[i, j] = complex(func(Z[i, j]))
+            except:
+                W[i, j] = 0
+    
+    if mode == "mag":
+        Mag = np.abs(W)
+        T = np.clip(Mag / v_max, 0, 1)
+        c1 = np.array(color_to_rgb(BLUE_E))
+        c2 = np.array(color_to_rgb(RED))
+        RGB = c1[None, None, :] + T[:, :, None] * (c2 - c1)[None, None, :]
+    else: # Phase / Argument
+        Arg = np.angle(W)
+        T = (Arg + np.pi) / (2 * np.pi)
+        colors = [RED, YELLOW, GREEN, BLUE, PURPLE, RED]
+        rgb_colors = [np.array(color_to_rgb(c)) for c in colors]
+        RGB = np.zeros((res_y, res_x, 3))
+        for k in range(5):
+            mask = (T >= k/5) & (T <= (k+1)/5)
+            if not np.any(mask): continue
+            t_sub = (T[mask] - k/5) * 5
+            RGB[mask] = rgb_colors[k][None, :] + t_sub[:, None] * (rgb_colors[k+1] - rgb_colors[k])[None, :]
+    
+    img = ImageMobject((RGB * 255).astype(np.uint8))
+    img.height = 8
+    img.width = 12
+    return img
