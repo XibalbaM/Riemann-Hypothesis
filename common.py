@@ -8,12 +8,12 @@ chapters = [
         "Intégrales",
         "Analyse dans le plan complexe",
         "Séries infinies",
-        "Continuations analytiques"
+        "Continuations analytiques",
+        # Fonction gamma
     ]),
     ("La fonction zêta", [
         "Premières valeurs calculées",
         "Études de la série dans le plan complexe",
-        "Continuation analytique",
         "Différentes définitions",
     ]),
     ("Les zéros de la fonction zêta", [

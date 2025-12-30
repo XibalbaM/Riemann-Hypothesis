@@ -202,17 +202,16 @@ class Part2_3_AnalyticContinuation(Scene):
         cleanup = chapter_subtitle(self, 2, 3)
         
         # The issue: definition only valid for Re(s) > 1
-        formula = MathTex(r"\zeta(s) = \sum_{n=1}^{\infty} n^{-s}", color=BLACK).to_edge(UP, buff=1.5)
-        condition = MathTex(r"\text{Converge pour } \text{Re}(s) > 1", color=RED).next_to(formula, DOWN)
+        formula = MathTex(r"\zeta(s) = \sum_{n=1}^{\infty} n^{-s}", color=BLACK).to_edge(UP, buff=1)
         
-        self.play(Write(formula), Write(condition))
+        self.play(Write(formula))
         self.wait(1)
         
         # Visualizing the domain on complex plane
         plane = ComplexPlane(
             axis_config={"color": BLACK},
             background_line_style={"stroke_color": GRAY, "stroke_opacity": 0.3}
-        ).scale(0.8).shift(DOWN*0.5)
+        )
         
         self.play(Create(plane))
         
@@ -237,40 +236,23 @@ class Part2_3_AnalyticContinuation(Scene):
         self.wait(2)
         
         # Continuation
-        text_continuation = Text("Extension à tout le plan complexe", font_size=24, color=BLUE_E).to_edge(LEFT, buff=1).shift(UP)
+        func_eq = MathTex(r"\zeta(s) = 2^s \pi^{s-1} \sin\left(\frac{\pi s}{2}\right) \Gamma(1-s) \zeta(1-s)", color=BLACK).next_to(formula, DOWN, buff=0.5)
         
-        # Functional Equation
-        # zeta(s) = 2^s pi^{s-1} sin(pi s / 2) Gamma(1-s) zeta(1-s)
-        func_eq = MathTex(r"\zeta(s) = 2^s \pi^{s-1} \sin\left(\frac{\pi s}{2}\right) \Gamma(1-s) \zeta(1-s)", color=BLACK, font_size=32).to_edge(UP, buff=2.5)
-        box = SurroundingRectangle(func_eq, color=BLUE_E, buff=0.1)
-        
-        self.play(FadeOut(valid_region), FadeOut(label_valid), FadeOut(condition))
-        self.play(Write(text_continuation), Write(func_eq), Create(box))
+        self.play(Write(func_eq))
         
         extended_region = Rectangle(
             width=20, height=20, fill_color=BLUE, fill_opacity=0.1, stroke_width=0
         )
-        label_extended = Text("Défini partout (sauf s=1)", font_size=24, color=BLUE_E).move_to(plane.c2p(-2, 2))
+        label_extended = Text("Défini partout (sauf s=1)", font_size=24, color=BLUE_E).to_edge(DOWN, buff=1)
         
-        self.play(FadeIn(extended_region), Write(label_extended))
+        self.play(Transform(valid_region, extended_region), Transform(label_valid, label_extended))
         
-        # Pole at s=1
-        pole = Dot(plane.c2p(1, 0), color=RED)
-        label_pole = Text("Pôle simple en s=1", font_size=16, color=RED).next_to(pole, UP)
-        
-        self.play(Create(pole), Write(label_pole))
         self.wait(3)
         
         self.play(
-            FadeOut(plane), FadeOut(extended_region), FadeOut(text_continuation), 
-            FadeOut(func_eq), FadeOut(box), FadeOut(pole), FadeOut(label_pole),
-            FadeOut(label_extended), FadeOut(formula)
+            FadeOut(plane), FadeOut(valid_region), FadeOut(func_eq),
+            FadeOut(label_valid), FadeOut(formula)
         )
-        self.play(cleanup)
-
-class Part2_4_Definitions(Scene):
-    def construct(self):
-        cleanup = chapter_subtitle(self, 2, 4)
         
         # Euler Product
         title_product = Text("Produit d'Euler", font_size=36, color=BLACK).to_edge(UP, buff=1.5)
@@ -282,26 +264,24 @@ class Part2_4_Definitions(Scene):
         self.play(Write(title_product), Write(formula_product))
         self.wait(2)
         
-        # Connection to primes
-        connection_text = Text("Lien direct entre l'analyse et les nombres premiers", font_size=28, color=BLUE_E).next_to(formula_product, DOWN, buff=1)
+        explaination = Text("Même principe que le crible d'Eratosthène", font_size=24, color=BLACK).next_to(formula_product, DOWN, buff=0.5)
         
-        primes = MathTex(r"p \in \{2, 3, 5, 7, 11, 13, \dots\}", color=BLACK).next_to(connection_text, DOWN, buff=0.5)
-        
-        self.play(Write(connection_text))
-        self.play(Write(primes))
-        self.wait(3)
-        
-        # Maybe show the expansion for a few terms?
-        # 1/(1-2^-s) * 1/(1-3^-s) ...
-        # = (1 + 2^-s + 4^-s + ...) * (1 + 3^-s + 9^-s + ...) ...
-        # = sum n^-s due to Unique Factorization Theorem
-        
-        expansion_idea = Text("Basé sur le Théorème Fondamental de l'Arithmétique", font_size=24, color=GRAY).to_edge(BOTTOM, buff=1)
-        self.play(FadeIn(expansion_idea))
+        self.play(Write(explaination))
         self.wait(2)
         
         self.play(
             FadeOut(title_product), FadeOut(formula_product), 
-            FadeOut(connection_text), FadeOut(primes), FadeOut(expansion_idea)
+            FadeOut(explaination)
         )
-        self.play(cleanup)
+
+        # Explicit definition via integral
+        title_integral = Text("Définition explicite de Riemann", font_size=36, color=BLACK).to_edge(UP, buff=1.5)
+        
+        formula_integral = MathTex(r"\zeta(s) = \frac{1}{\Gamma(s)} \int_0^\infty \frac{x^{s-1}}{e^x - 1} \, dx", color=BLACK).next_to(title_integral, DOWN, buff=1)
+        
+        self.play(Write(title_integral), Write(formula_integral))
+        self.wait(2)
+        
+        self.play(
+            FadeOut(title_integral), FadeOut(formula_integral), cleanup
+        )
