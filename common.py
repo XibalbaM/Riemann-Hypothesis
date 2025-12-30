@@ -86,8 +86,15 @@ def HeatmapMobject(function, x_range, y_range, x_length, y_length, mode="hue", *
     x_min, x_max = x_range
     y_min, y_max = y_range
     
-    width = int(x_length * 50)
-    height = int(y_length * 50)
+    resolution = 50
+    if config.quality == "low_quality":
+        resolution = 25
+    elif config.quality == "high_quality":
+        resolution = 100
+    
+    # Resolution
+    width = int(x_length * resolution)
+    height = int(y_length * resolution)
 
     # Create grid
     x = np.linspace(x_min, x_max, width)
