@@ -1,53 +1,14 @@
+from common import HeatmapMobject
 from manim import *
 from common import *
 import numpy as np
+import mpmath
 
-class Part2_1_ZetaFunction(Scene):
+class Part2_1_FirstValues(Scene):
     def construct(self):
         # Title
         title_mobject = chapter_title(self, 2)
         cleanup = chapter_subtitle(self, 2, 1, title_mobject=title_mobject)
-
-        # Definition
-        # zeta(s) = sum_{n=1}^inf 1/n^s
-        
-        definition = MathTex(r"\zeta(s) = \sum_{n=1}^{\infty} \frac{1}{n^s}", color=BLACK).scale(1.5)
-        self.play(Write(definition))
-        self.wait(1)
-        
-        # Move definition to top
-        self.play(definition.animate.to_edge(UP, buff=1))
-        
-        # Test for s = 1 (Harmonic Series)
-        s_val_1 = MathTex(r"s = 1", color=BLUE_E).next_to(definition, DOWN, buff=0.5)
-        harmonic = MathTex(r"\zeta(1) = 1 + \frac{1}{2} + \frac{1}{3} + \frac{1}{4} + \cdots", color=BLACK)
-        diverges = Text("Diverge (vers l'infini)", color=RED, font_size=36).next_to(harmonic, DOWN, buff=0.5)
-        
-        self.play(Write(s_val_1))
-        self.play(Write(harmonic))
-        self.wait(1)
-        self.play(FadeIn(diverges))
-        self.wait(2)
-        
-        self.play(FadeOut(s_val_1), FadeOut(harmonic), FadeOut(diverges))
-        
-        # Test for s = 2
-        s_val_2 = MathTex(r"s = 2", color=BLUE_E).next_to(definition, DOWN, buff=0.5)
-        basel = MathTex(r"\zeta(2) = 1 + \frac{1}{4} + \frac{1}{9} + \frac{1}{16} + \cdots", color=BLACK)
-        converges = Text("Converge", color=GREEN, font_size=36).next_to(basel, DOWN, buff=0.5)
-        
-        self.play(Write(s_val_2))
-        self.play(Write(basel))
-        self.wait(1)
-        self.play(FadeIn(converges))
-        self.wait(2)
-        
-        self.play(FadeOut(s_val_2), FadeOut(basel), FadeOut(converges), FadeOut(definition))
-        self.play(cleanup)
-
-class Part2_2_FirstValues(Scene):
-    def construct(self):
-        cleanup = chapter_subtitle(self, 2, 2)
         
         # Euler and the Basel Problem
         title_basel = Text("Le problème de Bâle (1650)", font_size=36, color=BLACK).to_edge(UP, buff=1.5)
@@ -56,33 +17,184 @@ class Part2_2_FirstValues(Scene):
         self.play(Write(title_basel), Write(question))
         self.wait(1)
         
-        euler_image = Text("Leonhard Euler (1735)", font_size=24, color=BLUE_E).next_to(question, DOWN, buff=1)
-        # Using text as placeholder for image/story
-        
-        self.play(FadeIn(euler_image))
+        euler_name = Text("Leonhard Euler (1735)", font_size=24, color=BLUE_E).next_to(question, LEFT, buff=1.5)
+        euler_image = ImageMobject("assets/euler").next_to(euler_name, DOWN, buff=0.5)
+
+        self.play(Write(euler_name), FadeIn(euler_image))
         self.wait(1)
         
-        answer = MathTex(r"= \frac{\pi^2}{6} \approx 1.645", color=GREEN_E).next_to(question, RIGHT)
-        self.play(Write(answer))
+        answer = MathTex(r"\sum_{n=1}^\infty \frac{1}{n^2} = \frac{\pi^2}{6} \approx 1.645", color=BLACK).move_to(question)
+        self.play(Transform(question, answer))
         self.wait(2)
         
         # Other values
-        zeta_4 = MathTex(r"\zeta(4) = \frac{\pi^4}{90}", color=BLACK).next_to(euler_image, DOWN, buff=1)
-        zeta_6 = MathTex(r"\zeta(6) = \frac{\pi^6}{945}", color=BLACK).next_to(zeta_4, DOWN, buff=0.5)
+        zeta_4 = MathTex(r"\zeta(4) = \frac{\pi^4}{90}", color=BLACK).next_to(question, DOWN, buff=0.5).align_to(question, LEFT)
         
         self.play(Write(zeta_4))
-        self.play(Write(zeta_6))
         self.wait(2)
-        
+
+        # Even values formula
+        even_values = MathTex(r"\zeta(2n) = \frac{(-1)^{n+1} B_{2n} (2\pi)^{2n}}{2 (2n)!}", color=BLACK).next_to(zeta_4, RIGHT, buff=0.5).align_to(zeta_4, UP)
+        self.play(Write(even_values))
+        self.wait(2)
+
         # Odd values?
-        zeta_3 = MathTex(r"\zeta(3) \approx 1.202", color=BLACK).next_to(zeta_6, DOWN, buff=0.5) 
-        mystery = Text("(Constante d'Apéry - Pas de formule simple connue)", font_size=20, color=GRAY).next_to(zeta_3, RIGHT)
+        zeta_3 = MathTex(r"\zeta(3) \approx 1.202", color=BLACK).next_to(zeta_4, DOWN, buff=0.5).align_to(zeta_4, LEFT) 
+        mystery = Text("(Constante d'Apéry - Pas de formule simple connue)", font_size=20, color=GRAY).next_to(zeta_3, DOWN)
         
         self.play(Write(zeta_3), FadeIn(mystery))
         self.wait(2)
         
-        self.play(FadeOut(title_basel), FadeOut(question), FadeOut(euler_image), 
-                  FadeOut(answer), FadeOut(zeta_4), FadeOut(zeta_6), FadeOut(zeta_3), FadeOut(mystery))
+        self.play(FadeOut(title_basel), FadeOut(question), FadeOut(euler_name), FadeOut(euler_image),
+                  FadeOut(answer), FadeOut(zeta_4), FadeOut(zeta_3), FadeOut(even_values), FadeOut(mystery))
+        self.play(cleanup)
+
+class Part2_2_TheSeries(Scene):
+    def construct(self):
+        cleanup = chapter_subtitle(self, 2, 2)
+
+        # Presentation of the series formula
+        formula = MathTex(r"\zeta(s) = \sum_{n=1}^{\infty} \frac{1}{n^s}", color=BLACK).scale(1.5)
+        self.play(Write(formula))
+
+        # Definition of s
+        s_def = MathTex(r"s = \sigma + i t", color=BLUE_E).next_to(formula, DOWN, buff=0.7)
+        
+        self.play(Write(s_def))
+        self.wait(1.5)
+        
+        # Graphical representation of the series
+        self.play(
+            formula.animate.scale(0.6).to_corner(UL),
+            FadeOut(s_def)
+        )
+        
+        # Complex Plane Setup
+        plane = ComplexPlane(
+            x_range=[-5, 5, 1],
+            y_range=[-5, 5, 1],
+            axis_config={"color": BLACK},
+            background_line_style={"stroke_color": GRAY, "stroke_opacity": 0.3}
+        ).add_coordinates()
+        
+        # Manually color coordinates black
+        for mob in plane.coordinate_labels:
+            mob.set_color(BLACK)
+            
+        self.play(Create(plane))
+        
+        # Example value s = 1.2 + 1.5i : converges
+        s_val = 1.2 + 1.5j
+        val_text = MathTex(f"s = {s_val.real} + {s_val.imag}i", color=BLACK, font_size=32).next_to(formula, DOWN, buff=0.5).to_edge(LEFT, buff=0.5)
+        
+        self.play(Write(val_text))
+        
+        # Summation animation
+        current_sum = 0j
+        prev_point = plane.c2p(0, 0)
+        arrows = VGroup()
+        
+        # We perform the sum for first 20 terms
+        for n in range(1, 100):
+            term = 1 / (n ** s_val)
+            current_sum += term
+            new_point = plane.c2p(current_sum.real, current_sum.imag)
+            
+            arrow = Arrow(prev_point, new_point, buff=0, color=BLUE_E if n%2==0 else BLUE, stroke_width=2, max_tip_length_to_length_ratio=0.15)
+            arrows.add(arrow)
+            prev_point = new_point
+
+        # Animate arrows
+        for i, arrow in enumerate(arrows):
+            # Slow at first, then fast
+            speed = 1.0 if i < 3 else 1/i
+            self.play(GrowArrow(arrow), run_time=speed)
+            
+        self.wait(2)
+        self.play(FadeOut(arrows))
+        
+        # Example value s = 0.5 + 0.5i : diverges
+        s_val = 0.5 + 0.5j
+        val_text_2 = MathTex(f"s = {s_val.real} + {s_val.imag}i", color=BLACK, font_size=32).next_to(formula, DOWN, buff=0.5).to_edge(LEFT, buff=0.5)
+        
+        self.play(Transform(val_text, val_text_2))
+        
+        # Summation animation
+        current_sum = 0j
+        prev_point = plane.c2p(0, 0)
+        arrows = VGroup()
+        
+        # We perform the sum for first 50 terms
+        for n in range(1, 50):
+            term = 1 / (n ** s_val)
+            current_sum += term
+            new_point = plane.c2p(current_sum.real, current_sum.imag)
+            
+            arrow = Arrow(prev_point, new_point, buff=0, color=BLUE_E if n%2==0 else BLUE, stroke_width=2, max_tip_length_to_length_ratio=0.15)
+            arrows.add(arrow)
+            prev_point = new_point
+
+        # Animate arrows
+        for i, arrow in enumerate(arrows):
+            # Slow at first, then fast
+            speed = 1.0 if i < 3 else 1/i
+            self.play(GrowArrow(arrow), run_time=speed)
+            
+        self.wait(2)
+        self.play(FadeOut(arrows))
+
+        # Last example : s = 1 + i
+        s_val = 1 + 1j
+        val_text_3 = MathTex(f"s = {s_val.real} + {s_val.imag}i", color=BLACK, font_size=32).next_to(formula, DOWN, buff=0.5).to_edge(LEFT, buff=0.5)
+        
+        self.play(Transform(val_text, val_text_3))
+
+        # Summation animation
+        current_sum = 0j
+        prev_point = plane.c2p(0, 0)
+        arrows = VGroup()
+        
+        # We perform the sum for first 50 terms
+        for n in range(1, 50):
+            term = 1 / (n ** s_val)
+            current_sum += term
+            new_point = plane.c2p(current_sum.real, current_sum.imag)
+            
+            arrow = Arrow(prev_point, new_point, buff=0, color=BLUE_E if n%2==0 else BLUE, stroke_width=2, max_tip_length_to_length_ratio=0.15)
+            arrows.add(arrow)
+            prev_point = new_point
+
+        # Animate arrows
+        for i, arrow in enumerate(arrows):
+            # Slow at first, then fast
+            speed = 1.0 if i < 3 else 1/i
+            self.play(GrowArrow(arrow), run_time=speed)
+            
+        
+        self.wait(2)
+        self.play(FadeOut(arrows))
+
+        self.play(
+            FadeOut(val_text), FadeOut(formula), FadeOut(plane)
+        )
+
+        # Show heatmap were it converges
+        plane_heatmap = ComplexPlane(
+            x_range=[-5, 5, 1],
+            y_range=[-5, 5, 1],
+            x_length=10,
+            y_length=10,
+            axis_config={"color": BLACK},
+            background_line_style={"stroke_color": GRAY, "stroke_opacity": 0.2}
+        ).add_coordinates().set_z_index(1)
+        for mob in plane_heatmap.coordinate_labels:
+            mob.set_color(BLACK).scale(0.4)
+        self.add(plane_heatmap)
+        
+        heatmap = always_redraw(lambda: HeatmapMobject(lambda z: complex(mpmath.zeta(z)), x_range=[1, 5], y_range=[-4, 4], x_length=4, y_length=8, mode="log")).move_to(plane_heatmap.c2p(3, 0))
+        self.add(heatmap)
+        self.wait(2)
+        self.remove(heatmap)
         self.play(cleanup)
 
 class Part2_3_AnalyticContinuation(Scene):
