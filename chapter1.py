@@ -178,93 +178,18 @@ class Part1_2_ComplexAnalysis(ThreeDScene):
         self.play(FadeOut(surface_re), FadeOut(axes3d), FadeOut(label_re))
         self.move_camera(phi=0, theta=-90 * DEGREES, run_time=2)
 
-        # 2. Im(f(z)) with 3d
-        label_im = MathTex(r"\text{Im}(f(z))", color=BLACK).next_to(axes3d, RIGHT, buff=1).shift(UP*2)
-        surface_im = get_surface(lambda z: f(z).imag)
+        # 2. Using color
+        heatmap = always_redraw(lambda: HeatmapMobject(
+            function=f,
+            x_range=[-2, 2],
+            y_range=[-2, 2],
+            x_length=4,
+            y_length=4
+        ))
         
-        self.play(Create(axes3d), Write(label_im))
-        self.move_camera(phi=75 * DEGREES, theta=-45 * DEGREES, run_time=2)
-        self.play(Create(surface_im))
+        self.play(FadeIn(heatmap))
         self.wait(2)
-
-        # Go back to 2D
-        self.play(FadeOut(surface_im), FadeOut(axes3d), FadeOut(label_im))
-        self.move_camera(phi=0, theta=-90 * DEGREES, run_time=2)
-        
-        # Color Scale helper
-        def get_color_scale(colors, label_text, vrange=[0, 1]):
-            scale = VGroup()
-            for i, color in enumerate(colors):
-                rect = Square(side_length=0.2, fill_color=color, fill_opacity=1, stroke_width=0)
-                rect.shift(DOWN * i * 0.2)
-                scale.add(rect)
-            scale.to_edge(RIGHT, buff=1)
-            label = Text(label_text, font_size=20, color=BLACK).next_to(scale, UP)
-            min_l = Text(str(vrange[0]), font_size=16, color=BLACK).next_to(scale, RIGHT).align_to(scale, UP)
-            max_l = Text(str(vrange[1]), font_size=16, color=BLACK).next_to(scale, RIGHT).align_to(scale, DOWN)
-            return VGroup(scale, label, min_l, max_l)
-
-        # Continuous Plotting using ImageMobject for professional "Domain Coloring"
-        def get_continuous_image(func, mode="mag"):
-            res_x, res_y = 512, 512  # Higher resolution for smoothness
-            x = np.linspace(-6, 6, res_x)
-            y = np.linspace(4, -4, res_y)
-            X, Y = np.meshgrid(x, y)
-            Z = X + 1j * Y
-            W = func(Z)
-            
-            if mode == "mag":
-                Mag = np.abs(W)
-                T = np.clip(Mag / 10, 0, 1)
-                c1 = np.array(color_to_rgb(BLUE_E))
-                c2 = np.array(color_to_rgb(RED))
-                RGB = c1[None, None, :] + T[:, :, None] * (c2 - c1)[None, None, :]
-            else: # Phase / Argument
-                Arg = np.angle(W)
-                T = (Arg + np.pi) / (2 * np.pi)
-                colors = [RED, YELLOW, GREEN, BLUE, PURPLE, RED]
-                rgb_colors = [np.array(color_to_rgb(c)) for c in colors]
-                RGB = np.zeros((res_y, res_x, 3))
-                for k in range(5):
-                    mask = (T >= k/5) & (T <= (k+1)/5)
-                    # For points exactly at 1.0, mask might be empty or overlap
-                    if not np.any(mask): continue
-                    t_sub = (T[mask] - k/5) * 5
-                    RGB[mask] = rgb_colors[k][None, :] + t_sub[:, None] * (rgb_colors[k+1] - rgb_colors[k])[None, :]
-            
-            img = ImageMobject((RGB * 255).astype(np.uint8))
-            img.height = 8
-            img.width = 12
-            return img
-
-        # 3. |f(z)| with continuous color (Magnitude)
-        label_magnitude = MathTex(r"|f(z)|", color=BLACK).to_edge(UP, buff=1.2)
-        mag_colors = [BLUE_E, GREEN_E, YELLOW, RED]
-        color_scale_magnitude = get_color_scale(mag_colors[::-1], "Magnitude", vrange=[0, 10]).shift(LEFT*0.5)
-        
-        magnitude_plot = get_continuous_image(f, mode="mag")
-        
-        self.play(Write(label_magnitude))
-        self.play(FadeIn(magnitude_plot), FadeIn(color_scale_magnitude))
-        self.wait(2)
-
-        # 4. arg(f(z)) with continuous color (Phase)
-        label_argument = MathTex(r"\text{arg}(f(z))", color=BLACK).to_edge(UP, buff=1.2)
-        arg_colors = [RED, YELLOW, GREEN, BLUE, PURPLE, RED] 
-        color_scale_argument = get_color_scale(arg_colors[::-1], "Phase", vrange=["-π", "π"]).shift(LEFT*0.5)
-
-        argument_plot = get_continuous_image(f, mode="arg")
-
-        self.play(
-            FadeOut(magnitude_plot), FadeOut(color_scale_magnitude),
-            FadeIn(argument_plot), FadeIn(color_scale_argument),
-            ReplacementTransform(label_magnitude, label_argument)
-        )
-        self.wait(2)
-
-        self.play(FadeOut(argument_plot), FadeOut(color_scale_argument), FadeOut(label_argument))
-        
-        self.play(cleanup)
+        self.play(FadeOut(heatmap), cleanup)
 
 class Part1_3_InfiniteSeries(Scene):
     def construct(self):
