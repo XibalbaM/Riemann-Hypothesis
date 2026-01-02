@@ -371,6 +371,7 @@ class Part1_4_AnalyticContinuation(Scene):
         
         self.play(Create(interp_curve), Write(interp_label))
         self.wait(3)
+        # TODO : Add giggling
 
         # Add one more point
         points_x.append(5)

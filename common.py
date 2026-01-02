@@ -58,7 +58,7 @@ def chapter_subtitle(scene: Scene, chapter_number: int, subchapter_number: int, 
     scene.wait(1)
     
     top_title = Text(f"{chapter_number}.{subchapter_number} : {chapters[chapter_number - 1][1][subchapter_number - 1]}", font_size=24, color=BLACK, weight=BOLD).to_edge(UP, buff=0.25)
-    top_title.set_z_index(2)
+    top_title.set_z_index(1)
     
     scene.play(
         Transform(subtitle, top_title),

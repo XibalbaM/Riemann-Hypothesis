@@ -32,7 +32,7 @@ class Part3_1_TrivialZeros(Scene):
         # 3. Highlight trivial zeros at -2, -4, -6, -8, -10
         zeros_pos = [(-2, 0), (-4, 0), (-6, 0), (-8, 0), (-10, 0)]
         dots = VGroup(*[Dot(plane.c2p(x, y), color=RED) for x, y in zeros_pos])
-        labels = VGroup(*[Text(str(x), color=RED, font_size=20).next_to(plane.c2p(x, y), DOWN) for x, y in zeros_pos])
+        labels = VGroup(*[Text(str(x), color=BLACK, font_size=20).next_to(plane.c2p(x, y), DOWN) for x, y in zeros_pos])
 
         self.play(Create(dots))
         self.play(Write(labels))
@@ -78,7 +78,7 @@ class Part3_2_HistoricalAdvances(Scene):
         
         for p, name, d in zip(points_c, names, dirs):
             dot = Dot(plane.n2p(p), color=RED)
-            lbl = MathTex(name, color=RED).next_to(dot, d, buff=0.1)
+            lbl = MathTex(name, color=BLACK).next_to(dot, d, buff=0.1)
             dots.add(dot)
             labels.add(lbl)
             
