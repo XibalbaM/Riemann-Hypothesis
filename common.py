@@ -18,7 +18,6 @@ chapters = [
     ]),
     ("Les zéros de la fonction zêta", [
         "Zéros triviaux",
-        "Zéros non-triviaux",
         "Avancées historiques",
         "L’hypothèse de Riemann",
         "Problèmes du millénaire"
@@ -86,11 +85,7 @@ def HeatmapMobject(function, x_range, y_range, x_length, y_length, mode="hue", *
     x_min, x_max = x_range
     y_min, y_max = y_range
     
-    resolution = 50
-    if config.quality == "low_quality":
-        resolution = 25
-    elif config.quality == "high_quality":
-        resolution = 100
+    resolution = 25
     
     # Resolution
     width = int(x_length * resolution)
@@ -191,7 +186,6 @@ def HeatmapMobject(function, x_range, y_range, x_length, y_length, mode="hue", *
             
         # Convert to RGB
         rgba = plt.cm.coolwarm(v)
-        print(rgba)
 
     # Convert to unit8
     pixel_array = (rgba * 255).astype(np.uint8)

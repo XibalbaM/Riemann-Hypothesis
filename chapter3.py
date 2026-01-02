@@ -1,10 +1,8 @@
+from common import HeatmapMobject
 from manim import *
 from common import *
 import numpy as np
 import mpmath
-
-# Configure mpmath to be reasonably fast
-mpmath.mp.dps = 15
 
 class Part3_1_TrivialZeros(Scene):
     def construct(self):
@@ -14,21 +12,21 @@ class Part3_1_TrivialZeros(Scene):
         # 1. Negative real axis focus
         plane = ComplexPlane(
             x_range=[-11, 2, 1],
-            y_range=[-4, 4, 1],
+            y_range=[-2, 2, 1],
             axis_config={"color": BLACK},
             background_line_style={"stroke_color": GRAY, "stroke_opacity": 0.3}
-        )
+        ).set_z_index(1)
         self.play(Create(plane))
 
         # 2. Magnitude plot near negative real axis
         def zeta_func(z):
-            return mpmath.zeta(z)
+            return complex(mpmath.zeta(z))
 
         mag_label = Text("|ζ(s)|", color=BLACK).to_edge(UP, buff=1.2)
-        mag_plot = get_continuous_image(zeta_func, x_range=[-11, 2], y_range=[-4, 4], res_x=128, res_y=128, v_max=2)
+        mag_plot = HeatmapMobject(zeta_func, x_range=[-11, 2], y_range=[-2, 2], x_length=13, y_length=4, mode="log")
         
         self.play(Write(mag_label))
-        self.play(FadeIn(mag_plot))
+        self.add(mag_plot)
         self.wait(1)
 
         # 3. Highlight trivial zeros at -2, -4, -6, -8, -10
@@ -36,156 +34,239 @@ class Part3_1_TrivialZeros(Scene):
         dots = VGroup(*[Dot(plane.c2p(x, y), color=RED) for x, y in zeros_pos])
         labels = VGroup(*[Text(str(x), color=RED, font_size=20).next_to(plane.c2p(x, y), DOWN) for x, y in zeros_pos])
 
-        self.play(LaggedStart(*[GrowFromCenter(dot) for dot in dots], lag_ratio=0.2))
+        self.play(Create(dots))
         self.play(Write(labels))
         self.wait(2)
 
         # 4. Functional equation hint
-        formula = MarkupText(
-            'ζ(s) = 2<sup>s</sup> π<sup>s-1</sup> sin(πs/2) Γ(1-s) ζ(1-s)',
-            color=BLACK, font_size=24
-        ).to_edge(DOWN, buff=0.5).set_background_stroke(color=WHITE, width=2, opacity=1)
+        formula = MathTex(
+            r'\zeta(s) = 2^s \pi^{s-1} \sin(\pi s/2) \Gamma(1-s) \zeta(1-s)',
+            color=BLACK
+        ).to_edge(DOWN, buff=0.5)
         
-        sin_part = Text("sin(πs/2) = 0 pour s = -2, -4, ...", color=RED, font_size=20).next_to(formula, UP)
         
         self.play(Write(formula))
-        self.play(Write(sin_part))
         self.wait(3)
 
-        self.play(FadeOut(plane), FadeOut(mag_plot), FadeOut(mag_label), FadeOut(dots), FadeOut(labels), FadeOut(formula), FadeOut(sin_part), cleanup)
+        self.play(FadeOut(plane), FadeOut(mag_plot), FadeOut(mag_label), FadeOut(dots), FadeOut(labels), FadeOut(formula), cleanup)
 
-class Part3_2_NonTrivialZeros(Scene):
+class Part3_2_HistoricalAdvances(Scene):
     def construct(self):
         cleanup = chapter_subtitle(self, 3, 2)
-
+        
+        # 1. Symmetry
+        # ----------------
         plane = ComplexPlane(
-            x_range=[-1, 2, 1],
-            y_range=[-5, 35, 5],
+            x_range=[-4, 5, 1],
+            y_range=[-5, 5, 1],
             axis_config={"color": BLACK},
             background_line_style={"stroke_color": GRAY, "stroke_opacity": 0.3}
-        ).scale(0.8).shift(DOWN * 2)
+        )
         
-        # 1. Critical Strip
-        strip = Rectangle(
-            width=plane.c2p(1, 0)[0] - plane.c2p(0, 0)[0],
-            height=plane.c2p(0, 35)[1] - plane.c2p(0, -5)[1],
-            fill_color=BLUE,
-            fill_opacity=0.2,
-            stroke_width=0
-        ).move_to(plane.c2p(0.5, 15))
-        
-        strip_label = Text("Bande critique (0 < Re(s) < 1)", font_size=24, color=BLUE_E).next_to(strip, RIGHT)
-
         self.play(Create(plane))
-        self.play(FadeIn(strip), Write(strip_label))
-        self.wait(1)
-
-        # 2. Critical Line
-        line = Line(plane.c2p(0.5, -5), plane.c2p(0.5, 35), color=RED, stroke_width=4)
-        line_label = Text("Droite critique (Re(s) = 1/2)", font_size=24, color=RED).next_to(line, LEFT)
         
-        self.play(Create(line), Write(line_label))
-        self.wait(1)
-
-        # 3. Non-trivial zeros (first few)
-        zeros_im = [14.1347, 21.0220, 25.0108, 30.4248, 32.9351]
-        zeros_dots = VGroup(*[Dot(plane.c2p(0.5, im), color=BLACK, radius=0.06) for im in zeros_im])
-
-        self.play(LaggedStart(*[GrowFromCenter(dot) for dot in zeros_dots], lag_ratio=0.3))
-        self.wait(1)
-
-        # 4. Symmetry demonstration
-        dot_s = Dot(plane.c2p(0.5, 14.13), color=PURPLE)
-        label_s = Text("s", color=PURPLE).next_to(dot_s, RIGHT)
+        # S points
+        s_val = complex(0.7, 2.5)
+        names = ["s", r"\bar{s}", r"1-s", r"1-\bar{s}"]
+        dirs = [UR, DR, DL, UL]
         
-        self.play(Indicate(zeros_dots[0]))
-        self.play(Create(dot_s), Write(label_s))
+        # Helper to get points: s, conj(s), 1-s, 1-conj(s)
+        points_c = [s_val, np.conj(s_val), 1 - s_val, 1 - np.conj(s_val)]
         
-        sym_text = Text("s ∈ Z ⟹ 1-s, s̄, 1-s̄ ∈ Z", color=BLACK, font_size=24).to_edge(UP, buff=1.2)
-        self.play(Write(sym_text))
+        dots = VGroup()
+        labels = VGroup()
+        
+        for p, name, d in zip(points_c, names, dirs):
+            dot = Dot(plane.n2p(p), color=RED)
+            lbl = MathTex(name, color=RED).next_to(dot, d, buff=0.1)
+            dots.add(dot)
+            labels.add(lbl)
+            
+        # Critical line for symmetry reference (Re(s)=1/2)
+        crit_line = DashedLine(
+            plane.n2p(0.5 - 5j), 
+            plane.n2p(0.5 + 5j), 
+            color=BLUE
+        )
+        crit_label = MathTex("Re(s)=1/2", color=BLUE, font_size=24).next_to(crit_line, UP)
+        
+        self.play(Create(dots[0]), Write(labels[0]))
+        self.play(Create(crit_line), Write(crit_label))
+        
+        # Animate symmetries
+        # Functional Symmetery: s <-> 1-s
+        self.play(TransformFromCopy(dots[0], dots[2]), TransformFromCopy(labels[0], labels[2]))
+        
+        # Conjugate Symmetery: s <-> bar(s)
+        self.play(TransformFromCopy(dots[0], dots[1]), TransformFromCopy(labels[0], labels[1]))
+        
+        # Complete rectangle
+        self.play(TransformFromCopy(dots[2], dots[3]), TransformFromCopy(labels[2], labels[3]))
+        
+        self.wait(1)
+       
+        functional_equation = MathTex(
+            r'\zeta(s) = 2^s \pi^{s-1} \sin(\pi s/2) \Gamma(1-s) \zeta(1-s)',
+            color=BLACK
+        )
+        
+        self.play(Write(functional_equation))
         self.wait(2)
+        
+        # 2. Critical Strip
+        # ----------------
+        self.play(FadeOut(dots), FadeOut(labels), FadeOut(functional_equation))
+        
+        strip = Rectangle(
+            width=plane.x_axis.unit_size * 1,
+            height=plane.y_axis.unit_size * 10,
+            fill_color=YELLOW,
+            fill_opacity=0.3,
+            stroke_width=0
+        ).move_to(plane.n2p(0.5)) 
+        
+        strip_label = Text("Bande Critique", font_size=32, color=BLACK).next_to(strip, UP, buff=0.1)
+        strip_label.set_z_index(2)
+        
+        self.play(FadeIn(strip), Write(strip_label))
+        
+        # Constraints text
+        constraint_1 = MathTex(r"\zeta(s) \neq 0 \text{ si } Re(s) \ge 1", color=BLACK, font_size=36).to_corner(UL).shift(DOWN)
+        constraint_2 = Text("Hadamard & de la Vallée-Poussin (1896)", font_size=24, color=BLACK).next_to(constraint_1, DOWN, aligned_edge=LEFT)
+        constraint_3 = MathTex(r"\zeta(s) \neq 0 \text{ si } Re(s) = 1", color=BLACK, font_size=36).next_to(constraint_2, DOWN, aligned_edge=LEFT)
 
-        self.play(FadeOut(plane), FadeOut(strip), FadeOut(strip_label), FadeOut(line), FadeOut(line_label), FadeOut(zeros_dots), FadeOut(dot_s), FadeOut(label_s), FadeOut(sym_text), cleanup)
+        self.play(Write(constraint_1))
+        self.wait(1)
+        self.play(Write(constraint_2), Write(constraint_3))
+        self.wait(2)
+        
+        # 3. First Computed Zeros
+        # ----------------
+        self.play(
+            FadeOut(constraint_1), 
+            FadeOut(constraint_2), 
+            FadeOut(constraint_3),
+            FadeOut(strip_label),
+            FadeOut(strip), 
+            FadeOut(plane),
+            FadeOut(crit_line),
+            FadeOut(crit_label)
+        )
+        
+        # New Plane for Zeros (zoomed out y-axis)
+        plane_zeros = ComplexPlane(
+            x_range=[-2, 6, 1], 
+            y_range=[-2, 32, 5],
+            x_length=6, 
+            y_length=7,
+            axis_config={"color": BLACK},
+            background_line_style={"stroke_color": GRAY, "stroke_opacity": 0.3}
+        ).shift(DOWN * 0.5) 
+        
+        new_crit_line = Line(plane_zeros.n2p(0.5 - 2j), plane_zeros.n2p(0.5 + 32j), color=BLUE, stroke_width=2)
+        
+        new_strip = Rectangle(
+             width=plane_zeros.x_axis.unit_size * 1,
+             height=plane_zeros.y_axis.unit_size * 34,
+             fill_color=YELLOW,
+             fill_opacity=0.3,
+             stroke_width=0
+        ).move_to(plane_zeros.n2p(0.5 + 15j))
 
-class Part3_3_HistoricalAdvances(Scene):
+        self.play(FadeIn(plane_zeros), FadeIn(new_strip), Create(new_crit_line))
+        
+        valid_zeros = [14.13, 21.02, 25.01]
+        zero_grp = VGroup()
+        
+        for im in valid_zeros:
+            z_pt = plane_zeros.n2p(0.5 + im * 1j)
+            d = Dot(z_pt, color=RED)
+            l = MathTex(f"1/2 + {im}i", font_size=24, color=RED).next_to(d, RIGHT)
+            zero_grp.add(d, l)
+            
+        self.play(LaggedStart(*[Write(obj) for obj in zero_grp], lag_ratio=0.2, run_time=2))
+        
+        self.wait(2)
+        
+        self.play(
+            FadeOut(plane_zeros), FadeOut(new_strip), FadeOut(new_crit_line),   
+            FadeOut(zero_grp),
+            cleanup
+        )
+
+class Part3_3_RiemannHypothesis(Scene):
     def construct(self):
         cleanup = chapter_subtitle(self, 3, 3)
 
-        # Timeline of calculations
-        # Fix: explicitly use Text as label_constructor to avoid LaTeX
-        timeline = NumberLine(
-            x_range=[1850, 2030, 20],
-            length=10,
-            color=BLACK,
-            include_numbers=True,
-            font_size=20,
-            label_constructor=Text
-        ).shift(DOWN)
+        # 1. Critical Line
+        plane = ComplexPlane(
+            x_range=[-2, 4, 1],
+            y_range=[-2, 30, 5],
+            x_length=6,
+            y_length=7,
+            axis_config={"color": BLACK},
+            background_line_style={"stroke_color": GRAY, "stroke_opacity": 0.3}
+        ).shift(LEFT * 2)
+
+        crit_line = Line(
+            plane.n2p(0.5 - 2j),
+            plane.n2p(0.5 + 30j),
+            color=BLUE,
+            stroke_width=4
+        )
         
-        self.play(Create(timeline))
-
-        # TODO Events overlap
-        events = [
-            (1859, "Riemann", "Les 3 premiers zéros"),
-            (1903, "Gram", "15 zéros"),
-            (1914, "Hardy", "Infinité de zéros sur la droite"),
-            (1979, "Brent", "7 millions de zéros"),
-            (2004, "Gourdon", "10 billions (10^13) zéros"),
-            (2020, "Platt & Trudgian", "12 billions de zéros")
-        ]
-
-        entries = VGroup()
-        for i, (year, author, desc) in enumerate(events):
-            line_obj = Line(timeline.n2p(year), timeline.n2p(year) + UP * 1.5, color=BLUE_E)
-            txt = Text(f"{author}\n({year})", font_size=16, color=BLACK).next_to(line_obj, UP)
-            subtxt = Text(desc, font_size=14, color=GRAY).next_to(txt, UP, buff=0.1)
-            entries.add(VGroup(line_obj, txt, subtxt))
-
-        self.play(LaggedStart(*[FadeIn(e, shift=UP) for e in entries], lag_ratio=0.5, run_time=5))
-        self.wait(3)
-
-        self.play(FadeOut(timeline), FadeOut(entries), cleanup)
-
-class Part3_4_RiemannHypothesis(Scene):
-    def construct(self):
-        cleanup = chapter_subtitle(self, 3, 4)
-
-        # Focus on the statement
-        rh_box = SurroundingRectangle(Text("L'Hypothèse de Riemann", color=BLUE_E), buff=0.5, color=BLUE_E)
-        rh_title = Text("L'Hypothèse de Riemann", color=BLUE_E).move_to(rh_box)
+        self.play(Create(plane), Create(crit_line))
         
-        #TODO Text goes high in the rectangle after transition
-        self.play(Create(rh_box), Write(rh_title))
-        self.play(rh_box.animate.to_edge(UP), rh_title.animate.to_edge(UP))
-        
-        statement = VGroup(
-            Text("Toutes les racines non-triviales s de ζ(s)", font_size=28, color=BLACK),
-            Text("ont une partie réelle Re(s) = 1/2", font_size=28, color=BLACK)
-        ).arrange(DOWN, buff=0.5)
-        
-        self.play(Write(statement))
+        # Show some zeros on the line (schematic)
+        # 14.13, 21.02, 25.01
+        zeros_y = [14.13, 21.02, 25.01]
+        zeros_dots = VGroup()
+        for y in zeros_y:
+            dot = Dot(plane.n2p(0.5 + y*1j), color=RED)
+            zeros_dots.add(dot)
+            
+        self.play(Create(zeros_dots))
+        self.wait(1)
+
+        # 2. The statement
+        statement_text = Tex(
+            r"Tous les zéros non triviaux\\",
+            r"de la fonction $\zeta(s)$ ont pour\\",
+            r"partie réelle $Re(s) = \frac{1}{2}$",
+            color=BLACK, font_size=34
+        )
+
+        self.play(Write(statement_text))
+        self.play(Circumscribe(statement_text))
         self.wait(2)
 
-        # TODO Complex plane is too right on screen 
-        # Visual reminder
-        # Make sure labels don't trigger LaTeX
-        plane = ComplexPlane(
-            x_range=[0, 1, 0.5], 
-            y_range=[0, 50, 10], 
-            axis_config={"color": BLACK}
-        ).scale(0.5).to_edge(RIGHT)
-        line = Line(plane.c2p(0.5, 0), plane.c2p(0.5, 50), color=RED, stroke_width=2)
-        
-        dots = VGroup(*[Dot(plane.c2p(0.5, im), color=BLACK, radius=0.03) for im in [14.13, 21.02, 25.01, 30.42, 32.93, 37.58, 40.91, 43.32, 48.00]])
-        
-        self.play(FadeIn(plane), Create(line), FadeIn(dots))
-        self.wait(3)
+        self.play(FadeOut(statement_text), FadeOut(zeros_dots), FadeOut(plane), FadeOut(crit_line))
+        # 3. Evidences
+        evidences = [
+            "Testé jusqu'à 3 × 10¹²", 
+            "Il y a une infinité de zéros sur la ligne critique (Hardy & Littlewood)", 
+            "Selberg (1942) : La proportion des zéros sur la ligne critique n’est pas nulle",
+            "Levinson (1974) : Elle est supérieure à 1/3",
+            "Conrey (1989) : Elle est supérieure à 2/5",
+            "Pratt, Robles, Zaharescu et Zeindler (2020) : Elle est supérieure à 5/12"
+        ]
 
-        self.play(FadeOut(rh_box), FadeOut(rh_title), FadeOut(statement), FadeOut(plane), FadeOut(line), FadeOut(dots), cleanup)
+        evidences_grp = VGroup()
+        for i, text in enumerate(evidences):
+            t = Text(text, font_size=24, color=BLACK).next_to(statement_text, DOWN, buff=0.5)
+            evidences_grp.add(t)
+        evidences_grp.arrange(DOWN, aligned_edge=LEFT)
+        self.play(Write(evidences_grp))
+        self.wait(2)
 
-class Part3_5_MillenniumProblems(Scene):
+        self.play(FadeOut(evidences_grp))
+        self.wait(2)
+
+        self.play(cleanup)
+
+class Part3_4_MillenniumProblems(Scene):
     def construct(self):
-        cleanup = chapter_subtitle(self, 3, 5)
+        cleanup = chapter_subtitle(self, 3, 4)
 
         # Clay Mathematics Institute
         clay_text = Text("Clay Mathematics Institute", font_size=40, color=BLUE_E).shift(UP * 2)
@@ -200,15 +281,26 @@ class Part3_5_MillenniumProblems(Scene):
         self.play(ReplacementTransform(logo_rect, prize), FadeOut(problem_text))
         self.play(prize.animate.scale(1.2), run_time=0.5, rate_func=there_and_back)
         self.wait(2)
+        self.play(FadeOut(prize))
 
-        # Status
-        status_text = Text("Toujours non résolu (2025)", font_size=24, color=RED).next_to(prize, DOWN, buff=0.5)
-        self.play(Write(status_text))
+        # List of intitulates
+        intitulates = [
+            "Conjecture de Poincaré",
+            "Conjecture de Birch et Swinnerton-Dyer",
+            "Conjecture de Hodge",
+            "Conjecture de Riemann",
+            "Existence de théorie de Yang-Mills",
+            "Équation de Navier-Stokes",
+            "P vs NP"
+        ]
+
+        intitulates_grp = VGroup()
+        for i, text in enumerate(intitulates):
+            t = Text(text, font_size=24, color=BLACK).next_to(prize, DOWN, buff=0.5)
+            intitulates_grp.add(t)
+        intitulates_grp.arrange(DOWN, aligned_edge=LEFT)
+        intitulates_grp.next_to(clay_text, DOWN, buff=0.5)
+        self.play(LaggedStart(*[Write(obj) for obj in intitulates_grp], lag_ratio=0.2, run_time=2))
         self.wait(2)
 
-        # Transition to Chapter 4
-        next_chap = Text("Chapitre 4: Conséquences", font_size=36, color=BLACK).to_edge(DOWN, buff=1)
-        self.play(Write(next_chap))
-        self.wait(2)
-
-        self.play(FadeOut(clay_text), FadeOut(prize), FadeOut(status_text), FadeOut(next_chap), cleanup)
+        self.play(FadeOut(intitulates_grp), FadeOut(clay_text), cleanup)
