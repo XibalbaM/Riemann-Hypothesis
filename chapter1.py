@@ -46,6 +46,9 @@ class Part1_1_Integrals(Scene):
         self.play(Write(ftc_formula))
         self.wait(3)
         
+        # TODO Write formula with two primitives F(a)-F(b)
+        
+        
         self.play(FadeOut(ftc_text), FadeOut(ftc_formula), cleanup)
 
 class Part1_2_ComplexAnalysis(ThreeDScene):
