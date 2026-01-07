@@ -283,28 +283,108 @@ class Part3_4_MillenniumProblems(Scene):
         self.wait(2)
         self.play(FadeOut(prize))
 
-        # List of intitulates
-        intitulates = [
-            "Conjecture de Poincaré",
+        # List of intitulés
+        intitules = [
+            "Conjecture de Poincaré (Résolue)",
             "Conjecture de Birch et Swinnerton-Dyer",
             "Conjecture de Hodge",
-            "Conjecture de Riemann",
-            "Existence de théorie de Yang-Mills",
-            "Équation de Navier-Stokes",
+            "L'Hypothèse de Riemann",
+            "Théorie de Yang-Mills",
+            "Équations de Navier-Stokes",
             "P vs NP"
         ]
 
-        intitulates_grp = VGroup()
-        for i, text in enumerate(intitulates):
-            t = Text(text, font_size=24, color=BLACK).next_to(prize, DOWN, buff=0.5)
-            intitulates_grp.add(t)
-        intitulates_grp.arrange(DOWN, aligned_edge=LEFT)
-        intitulates_grp.next_to(clay_text, DOWN, buff=0.5)
-        self.play(LaggedStart(*[Write(obj) for obj in intitulates_grp], lag_ratio=0.2, run_time=2))
+        intitules_grp = VGroup()
+        for i, text in enumerate(intitules):
+            t = Text(text, font_size=24, color=BLACK)
+            intitules_grp.add(t)
+        intitules_grp.arrange(DOWN, aligned_edge=LEFT)
+        intitules_grp.next_to(clay_text, DOWN, buff=0.5)
+        
+        self.play(LaggedStart(*[Write(obj) for obj in intitules_grp], lag_ratio=0.2, run_time=2))
         self.wait(2)
 
-        self.play(FadeOut(intitulates_grp), FadeOut(clay_text), cleanup)
+        self.play(FadeOut(intitules_grp), FadeOut(clay_text))
         
-        # 
+        # Simple explanations with visual representations
+        # Order: Poincaré, BSD, Hodge, Riemann, Yang-Mills, Navier-Stokes, P vs NP
         
+        # 1. Conjecture de Poincaré
+        title1 = Text("Conjecture de Poincaré (Résolue)", font_size=36, color=BLUE_E).shift(UP * 2)
+        desc1 = Text(wrap_text("Résolue par G. Perelman en 2003. Elle stipule que toute variété de dimension 3 "
+                               "simplement connexe et fermée est homéomorphe à une sphère.", 50), 
+                     font_size=24, color=BLACK).next_to(title1, DOWN)
         
+        sphere = Sphere(radius=1.5, fill_opacity=0.3, stroke_width=1).shift(LEFT * 3 + DOWN * 1)
+        # Loop on sphere (approximate with a circle)
+        loop = Circle(radius=0.5, color=YELLOW).move_to(sphere.get_center() + OUT * 1.5)
+        
+        self.play(Write(title1), FadeIn(desc1), Create(sphere), Create(loop))
+        self.play(loop.animate.scale(0.01).move_to(sphere.get_top()), run_time=2)
+        self.wait(2)
+        self.play(FadeOut(title1), FadeOut(desc1), FadeOut(sphere), FadeOut(loop))
+
+        # 2. Conjecture de Birch et Swinnerton-Dyer
+        title2 = Text("Conjecture de Birch et Swinnerton-Dyer", font_size=36, color=BLUE_E).shift(UP * 2)
+        desc2 = Text(wrap_text("Relie le nombre de points rationnels sur une courbe elliptique "
+                               "aux propriétés de sa fonction L en s=1.", 50), 
+                     font_size=24, color=BLACK).next_to(title2, DOWN)
+        
+        img2 = ImageMobject("Birch et Swinnerton-Dyer.png").scale(0.7).shift(LEFT * 3 + DOWN * 1)
+        
+        self.play(Write(title2), FadeIn(desc2), FadeIn(img2))
+        self.wait(3)
+        self.play(FadeOut(title2), FadeOut(desc2), FadeOut(img2))
+
+        # 3. Conjecture de Hodge
+        title3 = Text("Conjecture de Hodge", font_size=36, color=BLUE_E).shift(UP * 2)
+        desc3 = Text(wrap_text("Sur les variétés algébriques complexes projectives, les cycles de Hodge "
+                               "sont des combinaisons rationnelles de cycles algébriques.", 50), 
+                     font_size=24, color=BLACK).next_to(title3, DOWN)
+        
+        img3 = ImageMobject("Hodge_conjecture.png").scale(0.3).shift(LEFT * 3 + DOWN * 1)
+        
+        self.play(Write(title3), FadeIn(desc3), FadeIn(img3))
+        self.wait(3)
+        self.play(FadeOut(title3), FadeOut(desc3), FadeOut(img3))
+
+        # 4. L'Hypothèse de Riemann -> Skipped as requested (main point of presentation)
+
+        # 5. Théorie de Yang-Mills
+        title5 = Text("Théorie de Yang-Mills", font_size=36, color=BLUE_E).shift(UP * 2)
+        desc5 = Text(wrap_text("Démontrer que pour toute théorie de jauge simple compacte, il existe un "
+                               "écart de masse non nul (Mass Gap). Un pont entre physique et mathématiques. (Equation décrit intéractions quarks & gluons, intéraction forte)", 50), 
+                     font_size=24, color=BLACK).next_to(title5, DOWN)
+        
+        img5 = ImageMobject("yang mills.jpg").scale(0.4).shift(LEFT * 4 + DOWN * 2)
+        
+        self.play(Write(title5), FadeIn(desc5), FadeIn(img5))
+        self.wait(3)
+        self.play(FadeOut(title5), FadeOut(desc5), FadeOut(img5))
+
+        # 6. Équations de Navier-Stokes
+        title6 = Text("Équations de Navier-Stokes", font_size=36, color=BLUE_E).shift(UP * 2)
+        desc6 = Text(wrap_text("Comprendre la régularité et l'existence globale des solutions "
+                               "décrivant le mouvement fluide turbulent. (PDE)", 50), 
+                     font_size=24, color=BLACK).next_to(title6, DOWN)
+        
+        img6_eq = ImageMobject("Navier-Stokes-Equations-definition.png").scale(0.75).shift(DOWN * 2)
+        img6_sim = ImageMobject("fluid simulation.jpg").scale(0.4).shift(DOWN * 2)
+        
+        self.play(Write(title6), FadeIn(desc6), FadeIn(img6_eq))
+        self.wait(2)
+        self.play(FadeOut(img6_eq), FadeIn(img6_sim))
+        self.wait(3)
+        self.play(FadeOut(title6), FadeOut(desc6), FadeOut(img6_sim))
+
+        # 7. P vs NP
+        title7 = Text("P vs NP (métacomplexité)", font_size=36, color=BLUE_E).shift(UP * 2)
+        
+        # Use existing image
+        img7 = ImageMobject("P vs NP.png").scale(0.5).shift(DOWN * 2)
+        
+        self.play(Write(title7), FadeIn(img7))
+        self.wait(4)
+        self.play(FadeOut(title7), FadeOut(img7))
+
+        self.play(cleanup)
