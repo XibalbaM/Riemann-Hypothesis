@@ -352,7 +352,7 @@ class Part1_4_AnalyticContinuation(Scene):
         
         # Define 5 points
         points_x = [0, 1, 2, 3, 4]
-        points_y = [0, 2, -1, 3, 0] # Arbitrary values
+        points_y = [0.5, 2, -1, 3, 0] # Arbitrary values
         
         dots = VGroup()
         for x, y in zip(points_x, points_y):
@@ -389,6 +389,6 @@ class Part1_4_AnalyticContinuation(Scene):
         self.play(Transform(interp_curve, interp_curve2), Transform(interp_label, interp_label2))
         self.wait(3)
         
-        self.play(FadeOut(interp_axes), FadeOut(dots), FadeOut(interp_curve))
+        self.play(FadeOut(interp_axes), FadeOut(dots), FadeOut(interp_curve), FadeOut(interp_label))
         self.play(cleanup)
         

@@ -28,18 +28,18 @@ class Part2_1_FirstValues(Scene):
         self.wait(2)
         
         # Other values
-        zeta_4 = MathTex(r"\zeta(4) = \frac{\pi^4}{90}", color=BLACK).next_to(question, DOWN, buff=0.5).align_to(question, LEFT)
+        zeta_4 = MathTex(r"\sum_{n=1}^\infty \frac{1}{n^4} = \frac{\pi^4}{90}", color=BLACK).next_to(question, DOWN, buff=0.5).align_to(question, LEFT)
         
         self.play(Write(zeta_4))
         self.wait(2)
 
         # Even values formula
-        even_values = MathTex(r"\zeta(2n) = \frac{(-1)^{n+1} B_{2n} (2\pi)^{2n}}{2 (2n)!}", color=BLACK).next_to(zeta_4, RIGHT, buff=0.5).align_to(zeta_4, UP)
+        even_values = MathTex(r"\sum_{n=1}^\infty \frac{1}{n^{2n}} = \frac{(-1)^{n+1} B_{2n} (2\pi)^{2n}}{2 (2n)!}", color=BLACK).next_to(zeta_4, RIGHT, buff=0.5).align_to(zeta_4, UP)
         self.play(Write(even_values))
         self.wait(2)
 
         # Odd values?
-        zeta_3 = MathTex(r"\zeta(3) \approx 1.202", color=BLACK).next_to(zeta_4, DOWN, buff=0.5).align_to(zeta_4, LEFT) 
+        zeta_3 = MathTex(r"\sum_{n=1}^\infty \frac{1}{n^3} \approx 1.202", color=BLACK).next_to(zeta_4, DOWN, buff=0.5).align_to(zeta_4, LEFT) 
         mystery = Text("(Constante d'Apéry - Pas de formule simple connue)", font_size=20, color=GRAY).next_to(zeta_3, DOWN)
         
         self.play(Write(zeta_3), FadeIn(mystery))
