@@ -46,6 +46,9 @@ class Part1_1_Integrals(Scene):
         self.play(Write(ftc_formula))
         self.wait(3)
         
+        # TODO Write formula with two primitives F(a)-F(b)
+        
+        
         self.play(FadeOut(ftc_text), FadeOut(ftc_formula), cleanup)
 
 class Part1_2_ComplexAnalysis(ThreeDScene):
@@ -391,4 +394,97 @@ class Part1_4_AnalyticContinuation(Scene):
         
         self.play(FadeOut(interp_axes), FadeOut(dots), FadeOut(interp_curve), FadeOut(interp_label))
         self.play(cleanup)
+
+class Part1_5_GammaFunction(Scene):
+    def construct(self):
+        import math
+        cleanup = chapter_subtitle(self, 1, 5)
+
+        # 1. Connecting factorial dots
         
+        # Axes
+        axes = Axes(
+            x_range=[-0.5, 4.5, 1],
+            y_range=[-1, 7, 1],
+            axis_config={"color": BLACK}
+        ).scale(0.8)
+        
+        labels = axes.get_axis_labels("x", "y")
+        
+        self.play(Create(axes), Write(labels))
+        
+        # Points (n, n!)
+        points_data = [(0, 1), (1, 1), (2, 2), (3, 6)]
+        dots = VGroup()
+        for x, y in points_data:
+            dots.add(Dot(axes.c2p(x, y), color=BLUE_E, radius=0.08))
+            
+        self.play(FadeIn(dots))
+        self.wait(0.5)
+        
+        question = Text("Comment relier ces points ?", font_size=24, color=BLACK).to_edge(UP, buff=1.5)
+        self.play(Write(question))
+        self.wait(1)
+        
+        # Gamma curve: f(x) = Gamma(x+1)
+        # Note: math.gamma takes real numbers.
+        gamma_curve = axes.plot(lambda x: math.gamma(x+1), color=RED_E, x_range=[-0.45, 3.5])
+        
+        label_gamma = MathTex(r"\Gamma(x+1) = x!", color=RED_E).next_to(gamma_curve, RIGHT, buff=0.1).shift(UP*0.5)
+        
+        self.play(Create(gamma_curve), Write(label_gamma))
+        self.wait(2)
+        
+        self.play(FadeOut(dots), FadeOut(gamma_curve), FadeOut(axes), FadeOut(labels), FadeOut(question), FadeOut(label_gamma))
+
+        # 2. The gamma function expression
+        title_def = Text("La Fonction Gamma", font_size=36, color=BLUE_E).to_edge(UP, buff=1.5)
+        def_tex = MathTex(r"\Gamma(z) = \int_0^\infty t^{z-1} e^{-t} dt", color=BLACK).scale(1.2).shift(UP*0.5)
+        
+        prop_tex = MathTex(r"\Gamma(n) = (n-1)!", color=BLACK).next_to(def_tex, DOWN, buff=1)
+        
+        self.play(Write(title_def))
+        self.play(Write(def_tex))
+        self.wait(1)
+        self.play(Write(prop_tex))
+        self.wait(2)
+        
+        self.play(FadeOut(def_tex), FadeOut(prop_tex))
+
+        # 3. Few properties and values
+        props = VGroup(
+            MathTex(r"\Gamma(z+1) = z\Gamma(z)", color=BLACK),
+            MathTex(r"\Gamma(1/2) = \sqrt{\pi}", color=BLACK),
+            MathTex(r"\Gamma(-1/2) = -2\sqrt{\pi}", color=BLACK)
+        ).arrange(DOWN, buff=0.5).shift(UP*0.5)
+        
+        self.play(Write(props))
+        self.wait(3)
+        self.play(FadeOut(props))
+
+        # 4. A way to take irrational derivatives
+        # Introduction
+        deriv_title = Text("Dérivées fractionnaires ?", font_size=36, color=BLUE_E).to_edge(UP, buff=1.5)
+        
+        self.play(Transform(title_def, deriv_title))
+        
+        # Standard derivative power rule
+        rule_int = MathTex(r"\frac{d^n}{dx^n} x^k = \frac{k!}{(k-n)!} x^{k-n}", color=BLACK)
+        self.play(Write(rule_int))
+        self.wait(2)
+        
+        # Generalized
+        rule_frac = MathTex(r"\frac{d^\alpha}{dx^\alpha} x^k = \frac{\Gamma(k+1)}{\Gamma(k-\alpha+1)} x^{k-\alpha}", color=BLACK)
+        
+        self.play(ReplacementTransform(rule_int, rule_frac))
+        self.wait(1)
+        
+        self.play(rule_frac.animate.to_edge(UP, buff=2.5))
+        
+        # Example
+        example = MathTex(r"\frac{d^{\pi}}{dx^{\pi}} x = \frac{\Gamma(2)}{\Gamma(1-\pi)} x^{1-\pi} = \frac{2}{\Gamma(1-\pi)} x^{1-\pi}", color=BLACK).scale(1)
+        
+        self.play(Write(example))
+        self.wait(3)
+        
+        self.play(FadeOut(example), FadeOut(rule_frac), FadeOut(title_def), cleanup)

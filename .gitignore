@@ -4,10 +4,13 @@ slides
 test_assets
 *.html
 *.mp4
-
+.python-version
+pyproject.toml
+uv.lock
 bin
 include
 lib
 lib64
 __pycache__
 pyvenv.cfg
+test.py

@@ -5,27 +5,27 @@ import matplotlib.pyplot as plt
 
 chapters = [
     ("Concepts mathématiques", [
-        "Intégrales",
-        "Analyse dans le plan complexe",
-        "Séries infinies",
-        "Continuations analytiques",
-        # Fonction gamma
+        "Intégrales", # B
+        "Analyse dans le plan complexe", # M
+        "Séries infinies", # B puis M
+        "Continuations analytiques", # B
+        "Fonction gamma" # M
     ]),
     ("La fonction zêta", [
-        "Premières valeurs calculées",
-        "Études de la série dans le plan complexe",
-        "Différentes définitions",
+        "Premières valeurs calculées", # B
+        "Études de la série dans le plan complexe", # M
+        "Différentes définitions", # M
     ]),
     ("Les zéros de la fonction zêta", [
-        "Zéros triviaux",
-        "Avancées historiques",
-        "L’hypothèse de Riemann",
-        "Problèmes du millénaire"
+        "Zéros triviaux", # B
+        "Avancées historiques", # M
+        "L’hypothèse de Riemann", # M
+        "Problèmes du millénaire" # B
     ]),
     ("Conséquences", [
-        "Théorème des nombres premiers",
-        "Le théorème de Riemann sur la fonction pi",
-        "Autres conséquences"
+        "Théorème des nombres premiers", # M
+        "Le théorème de Riemann sur la fonction pi", # M
+        "Autres conséquences" # M
     ]),
 ]
 
