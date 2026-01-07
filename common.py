@@ -9,7 +9,7 @@ chapters = [
         "Analyse dans le plan complexe",
         "Séries infinies",
         "Continuations analytiques",
-        # Fonction gamma
+        "Fonction gamma"
     ]),
     ("La fonction zêta", [
         "Premières valeurs calculées",
